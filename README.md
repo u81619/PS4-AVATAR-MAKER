@@ -76,5 +76,5 @@ No comprehensive error handling yet
 If you're planning to improve it, add logging, queuing, and rate limiting! 💪
 📬 Contact the Developer
 For questions, suggestions, or improvements:
-Telegram → @C2_9H 🌟
+Telegram → [@C2_9H](https://t.me/C2_9H) 🌟
 Enjoy the bot and make your avatar shine! ✨🔥
