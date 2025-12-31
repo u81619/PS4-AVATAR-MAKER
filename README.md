@@ -1,80 +1,53 @@
-# ✨ **XAvatar Converter Discord Bot** 🚀
+# بوت XAvatar لـ Discord
 
-## 🌟 **Overview**
-This is a powerful **Discord bot** written in Python using the `discord.py` library. It allows users to upload an image and automatically convert it into a high-quality custom **.xavatar** file!
+**المطور:** حيدر احمد
+**تليجرام:** [t.me/C2_9h](https://t.me/C2_9h )
 
-The resulting `.xavatar` file is a **ZIP archive** containing:
-- A main PNG image resized to 440x440 (`picture.png` / `avatar.png`) 📸
-- Compressed DDS textures using DXT5 compression in multiple sizes (440, 260, 128, 64) for optimal performance (`picture{size}.dds`) ⚡
-- An `online.json` file with an official verification badge flag (activated or not) ✅
+---
 
-This format is specifically designed for platforms that support avatars with mipmaps and verification badges (similar to VRChat and others).
+## 📜 نظرة عامة على المشروع
 
-⚠️ **Important Warning**: The bot token in the code is exposed! Never share it with anyone. If it's a real token, regenerate it immediately from the Discord Developer Portal.
+بوت XAvatar هو بوت ديسكورد متخصص تم تطويره بلغة Python لأتمتة عملية إنشاء "XAvatars". يقوم البوت بتحويل الصور التي يرفعها المستخدمون إلى حزمة ملفات متوافقة مع نظام معين، تتضمن أحجامًا مختلفة من الصورة بصيغتي `PNG` و `DDS`، بالإضافة إلى ملف `JSON` يحتوي على بيانات وصفية.
 
-## 👨‍💻 **Developer**
-- **Name**: Haider Ahmed
-- **Contact the Developer**: Telegram [@C2_9H](https://t.me/C2_9H) ✈️
+يتميز البوت بواجهة تفاعلية بسيطة تعتمد على الأوامر المائلة (Slash Commands) والأزرار، مما يجعل تجربة المستخدم سهلة وسريعة.
 
-## 🔥 **Awesome Features**
-- Slash command: `/avatar` ⚔️
-- Easy image upload as an attachment
-- Beautiful embed with image preview 🖼️
-- Interactive buttons: **Activated (Yes)** or **Not Activated (No)** to set verification status
-- Professional image processing using Wand (ImageMagick bindings):
-  - High-quality resize to 440x440
-  - Super-fast generation of compressed DDS files
-- Packs everything into a ZIP archive named `avatar.xavatar` and sends it directly 📦
+---
 
-## 🛠️ **Requirements**
-- Python 3.8 or higher
-- ImageMagick installed and configured (the code sets the path automatically)
-- Libraries:
-  - `pip install Wand`
-  - `pip install discord.py`
+## ✨ المميزات الرئيسية
 
-## 🚀 **How to Run**
-1. Install the required libraries:
-   ```bash
-   pip install discord.py Wand
+- **🤖 تفاعل سهل:** يعتمد على أمر مائل (`/avatar`) واضح ومباشر لبدء عملية التحويل.
+- **🖼️ معالجة صور متقدمة:** يقوم تلقائيًا بتغيير حجم الصورة المصدر إلى أبعاد متعددة (`440x440`, `260x260`, `128x128`, `64x64`) وحفظها بصيغ مختلفة.
+- **⚙️ دعم صيغة DDS:** يستخدم ضغط `DXT5` لإنشاء ملفات `.dds`، وهي صيغة شائعة في تطبيقات الألعاب والرسوميات.
+- **👆 واجهة أزرار تفاعلية:** يسأل المستخدم عما إذا كان الحساب "مفعّلاً" أم لا عبر أزرار بسيطة، مما يسهل تحديد الإعدادات.
+- **🗃️ إدارة بيانات منظمة:** يستخدم قاعدة بيانات `SQLite` لتسجيل كل عملية تحويل، مما يسمح بتتبع الاستخدام وتحليله لاحقًا.
+- **📦 تسليم فوري:** بعد المعالجة، يتم ضغط جميع الملفات الناتجة في ملف `.xavatar` واحد وتسليمه مباشرة إلى المستخدم في نفس القناة.
+- **🗑️ تنظيف تلقائي:** يقوم البوت بحذف الملفات المؤقتة بعد كل عملية لضمان عدم استهلاك مساحة تخزين غير ضرورية.
 
-Make sure ImageMagick is properly installed.
-Replace the token in the code with your own bot token (from Discord Developer Portal).
-Invite the bot to your server with application.commands scope.
-Run the script:Bashpython bot.py
+---
 
-⚙️ How It Works (Technical Breakdown)
+## 📚 المكتبات المطلوبة
 
-Image Processing:
-Loads the image from bytes using wand.image.Image
-Saves a 440x440 PNG version
-Sets DXT5 compression and generates DDS files for each size
+لتشغيل هذا البوت، ستحتاج إلى تثبيت المكتبات التالية:
 
-File Copying:
-Duplicates files as picture.png and picture{size}.dds
-Creates online.json with the isOfficiallyVerified value
+| المكتبة | الأمر | الاستخدام في المشروع |
+| :--- | :--- | :--- |
+| **discord.py** | `pip install py-cord` | المكتبة الأساسية للتفاعل مع واجهة برمجة تطبيقات ديسكورد، إنشاء الأوامر، وإدارة الأحداث. |
+| **Wand** | `pip install Wand` | مكتبة قوية لمعالجة الصور، تُستخدم هنا لتغيير الحجم، التحويل بين الصيغ، وتطبيق الضغط. |
+| **Pillow** | `pip install Pillow` | مكتبة مساعدة لمعالجة الصور، وهي من متطلبات `Wand` في بعض الأنظمة. |
 
-Packaging:
-Creates a temporary folder → processes files → zips in memory → cleans up
+**متطلبات إضافية:**
+- **ImageMagick:** مكتبة `Wand` هي واجهة لـ ImageMagick، لذا يجب تثبيت ImageMagick على النظام الذي سيعمل عليه البوت.
 
-Interaction:
-Interactive buttons with a 5-minute timeout ⏱️
+---
 
+## 🚀 كيفية عمل الكود
 
-🔒 Security Notes
-
-Never share your bot token!
-Ensure your environment is secure when running ImageMagick.
-Consider adding rate limiting for public use.
-
-⚠️ Current Limitations
-
-Only supports formats readable by ImageMagick/Wand
-Fixed sizes and compression (tailored for a specific system)
-No comprehensive error handling yet
-
-If you're planning to improve it, add logging, queuing, and rate limiting! 💪
-📬 Contact the Developer
-For questions, suggestions, or improvements:
-Telegram → [@C2_9H](https://t.me/C2_9H) 🌟
-Enjoy the bot and make your avatar shine! ✨🔥
+1.  **استدعاء الأمر:** يبدأ المستخدم العملية عن طريق كتابة الأمر `/avatar` وإرفاق صورة.
+2.  **التحقق من الملف:** يتأكد البوت من أن الملف المرفق هو صورة صالحة.
+3.  **عرض الواجهة:** يعرض البوت رسالة تحتوي على الصورة المرفوعة مع زرين: "مفعل" و "غير مفعل".
+4.  **اختيار المستخدم:** عند ضغط المستخدم على أحد الأزرار، تبدأ عملية المعالجة في الخلفية.
+5.  **إنشاء سجل:** يتم حفظ تفاصيل العملية (معرّف المستخدم، حالة التفعيل) في قاعدة البيانات.
+6.  **معالجة الصورة:** يتم إنشاء نسخ متعددة من الصورة بالأحجام والصيغ المطلوبة (`.png`, `.dds`).
+7.  **إنشاء ملف JSON:** يتم إنشاء ملف `online.json` الذي يحدد حالة التفعيل.
+8.  **الضغط والتسليم:** يتم تجميع كل الملفات الناتجة في ملف مضغوط واحد بصيغة `.xavatar` وإرساله كرد على المستخدم.
+9.  **الحذف:** يتم حذف المجلد المؤقت الذي يحتوي على الملفات المعالجة.
