@@ -1,53 +1,53 @@
-# بوت XAvatar لـ Discord
+# XAvatar Discord Bot
 
-**المطور:** حيدر احمد
-**تليجرام:** [t.me/C2_9h](https://t.me/C2_9h )
-
----
-
-## 📜 نظرة عامة على المشروع
-
-بوت XAvatar هو بوت ديسكورد متخصص تم تطويره بلغة Python لأتمتة عملية إنشاء "XAvatars". يقوم البوت بتحويل الصور التي يرفعها المستخدمون إلى حزمة ملفات متوافقة مع نظام معين، تتضمن أحجامًا مختلفة من الصورة بصيغتي `PNG` و `DDS`، بالإضافة إلى ملف `JSON` يحتوي على بيانات وصفية.
-
-يتميز البوت بواجهة تفاعلية بسيطة تعتمد على الأوامر المائلة (Slash Commands) والأزرار، مما يجعل تجربة المستخدم سهلة وسريعة.
+**Developer:** Haidar Ahmed
+**Telegram:** [t.me/C2_9h](https://t.me/C2_9h )
 
 ---
 
-## ✨ المميزات الرئيسية
+## 📜 Project Overview
 
-- **🤖 تفاعل سهل:** يعتمد على أمر مائل (`/avatar`) واضح ومباشر لبدء عملية التحويل.
-- **🖼️ معالجة صور متقدمة:** يقوم تلقائيًا بتغيير حجم الصورة المصدر إلى أبعاد متعددة (`440x440`, `260x260`, `128x128`, `64x64`) وحفظها بصيغ مختلفة.
-- **⚙️ دعم صيغة DDS:** يستخدم ضغط `DXT5` لإنشاء ملفات `.dds`، وهي صيغة شائعة في تطبيقات الألعاب والرسوميات.
-- **👆 واجهة أزرار تفاعلية:** يسأل المستخدم عما إذا كان الحساب "مفعّلاً" أم لا عبر أزرار بسيطة، مما يسهل تحديد الإعدادات.
-- **🗃️ إدارة بيانات منظمة:** يستخدم قاعدة بيانات `SQLite` لتسجيل كل عملية تحويل، مما يسمح بتتبع الاستخدام وتحليله لاحقًا.
-- **📦 تسليم فوري:** بعد المعالجة، يتم ضغط جميع الملفات الناتجة في ملف `.xavatar` واحد وتسليمه مباشرة إلى المستخدم في نفس القناة.
-- **🗑️ تنظيف تلقائي:** يقوم البوت بحذف الملفات المؤقتة بعد كل عملية لضمان عدم استهلاك مساحة تخزين غير ضرورية.
+The XAvatar Bot is a specialized Discord bot developed in Python to automate the creation of "XAvatars." The bot processes images uploaded by users and converts them into a compatible file package. This package includes multiple resized versions of the image in both `PNG` and `DDS` formats, along with a `JSON` metadata file.
+
+The bot features a simple, interactive interface using Slash Commands and Buttons, making the user experience fast and straightforward.
 
 ---
 
-## 📚 المكتبات المطلوبة
+## ✨ Key Features
 
-لتشغيل هذا البوت، ستحتاج إلى تثبيت المكتبات التالية:
+- **🤖 Easy Interaction:** Uses a clear and direct slash command (`/avatar`) to initiate the conversion process.
+- **🖼️ Advanced Image Processing:** Automatically resizes the source image into multiple dimensions (`440x440`, `260x260`, `128x128`, `64x64`) and saves them in different formats.
+- **⚙️ DDS Format Support:** Utilizes `DXT5` compression to generate `.dds` files, a common format in gaming and graphics applications.
+- **👆 Interactive Button UI:** Asks the user whether the account is "activated" or not via simple buttons, making it easy to configure the output.
+- **🗃️ Organized Data Management:** Uses an `SQLite` database to log every conversion job, allowing for usage tracking and future analysis.
+- **📦 Instant Delivery:** After processing, all resulting files are compressed into a single `.xavatar` file and delivered directly to the user in the same channel.
+- **🗑️ Automatic Cleanup:** The bot automatically deletes temporary files after each operation to ensure no unnecessary storage space is consumed.
 
-| المكتبة | الأمر | الاستخدام في المشروع |
+---
+
+## 📚 Required Libraries
+
+To run this bot, you will need to install the following libraries:
+
+| Library | Command | Usage in Project |
 | :--- | :--- | :--- |
-| **discord.py** | `pip install py-cord` | المكتبة الأساسية للتفاعل مع واجهة برمجة تطبيقات ديسكورد، إنشاء الأوامر، وإدارة الأحداث. |
-| **Wand** | `pip install Wand` | مكتبة قوية لمعالجة الصور، تُستخدم هنا لتغيير الحجم، التحويل بين الصيغ، وتطبيق الضغط. |
-| **Pillow** | `pip install Pillow` | مكتبة مساعدة لمعالجة الصور، وهي من متطلبات `Wand` في بعض الأنظمة. |
+| **discord.py** | `pip install py-cord` | The core library for interacting with the Discord API, creating commands, and managing events. |
+| **Wand** | `pip install Wand` | A powerful image processing library used here for resizing, format conversion, and applying compression. |
+| **Pillow** | `pip install Pillow` | A helper library for image processing, often required by `Wand` on some systems. |
 
-**متطلبات إضافية:**
-- **ImageMagick:** مكتبة `Wand` هي واجهة لـ ImageMagick، لذا يجب تثبيت ImageMagick على النظام الذي سيعمل عليه البوت.
+**Additional Requirements:**
+- **ImageMagick:** The `Wand` library is a wrapper for ImageMagick, so ImageMagick must be installed on the system where the bot will run.
 
 ---
 
-## 🚀 كيفية عمل الكود
+## 🚀 How the Code Works
 
-1.  **استدعاء الأمر:** يبدأ المستخدم العملية عن طريق كتابة الأمر `/avatar` وإرفاق صورة.
-2.  **التحقق من الملف:** يتأكد البوت من أن الملف المرفق هو صورة صالحة.
-3.  **عرض الواجهة:** يعرض البوت رسالة تحتوي على الصورة المرفوعة مع زرين: "مفعل" و "غير مفعل".
-4.  **اختيار المستخدم:** عند ضغط المستخدم على أحد الأزرار، تبدأ عملية المعالجة في الخلفية.
-5.  **إنشاء سجل:** يتم حفظ تفاصيل العملية (معرّف المستخدم، حالة التفعيل) في قاعدة البيانات.
-6.  **معالجة الصورة:** يتم إنشاء نسخ متعددة من الصورة بالأحجام والصيغ المطلوبة (`.png`, `.dds`).
-7.  **إنشاء ملف JSON:** يتم إنشاء ملف `online.json` الذي يحدد حالة التفعيل.
-8.  **الضغط والتسليم:** يتم تجميع كل الملفات الناتجة في ملف مضغوط واحد بصيغة `.xavatar` وإرساله كرد على المستخدم.
-9.  **الحذف:** يتم حذف المجلد المؤقت الذي يحتوي على الملفات المعالجة.
+1.  **Command Invocation:** The user starts the process by typing the `/avatar` command and attaching an image.
+2.  **File Validation:** The bot verifies that the attached file is a valid image.
+3.  **UI Display:** The bot displays a message containing the uploaded image and two buttons: "Activated" and "Not Activated."
+4.  **User Input:** When the user clicks a button, the processing logic begins in the background.
+5.  **Job Logging:** The job details (user ID, activation status) are saved to the database.
+6.  **Image Processing:** Multiple versions of the image are created in the required sizes and formats (`.png`, `.dds`).
+7.  **JSON File Creation:** An `online.json` file is generated to specify the activation status.
+8.  **Compression & Delivery:** All resulting files are bundled into a single `.xavatar` archive and sent as a reply to the user.
+9.  **Cleanup:** The temporary directory containing the processed files is deleted.
