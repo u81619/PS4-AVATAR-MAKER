@@ -1,98 +1,112 @@
 import discord
-from discord import app_commands
 from discord.ext import commands
+from discord import Option
 from discord.ui import View, Button
-import os, shutil, zipfile, time
+import os
+import zipfile
+import sqlite3
+import uuid
+import time
 from io import BytesIO
 from wand.image import Image as WandImage
+import shutil  
 
-os.environ['MAGICK_HOME'] = r"put path your image magick"
+BASE_DIR = "storage/users"
+DB_PATH = "data.db"
+SIZES = [440, 260, 128, 64]
 
-sizes = [440, 260, 128, 64]
+os.makedirs(BASE_DIR, exist_ok=True)
 
-def add_files_to_zip_in_memory(file_paths: list[str]) -> bytes:
-    in_memory_zip = BytesIO()
-    with zipfile.ZipFile(in_memory_zip, "w", zipfile.ZIP_DEFLATED) as zf:
-        for file_path in file_paths:
-            arcname = os.path.basename(file_path)
-            zf.write(file_path, arcname)
-    in_memory_zip.seek(0)
-    return in_memory_zip.read()
+def db_connection():
+    return sqlite3.connect(DB_PATH)
 
-def process_image(img, temp_dir):
-    img.format = "png"
-    img.resize(440, 440)
-    img.save(filename=os.path.join(temp_dir, "avatar.png"))
-    img.compression = "dxt5"
-    for size in sizes:
-        if img.width != size:
-            img.resize(size, size)
-        img.save(filename=os.path.join(temp_dir, f"avatar{size}.dds"))
+with db_connection() as conn:
+    conn.execute(""" 
+        CREATE TABLE IF NOT EXISTS jobs ( 
+            id TEXT PRIMARY KEY, 
+            user_id INTEGER, 
+            activated INTEGER, 
+            created_at REAL 
+        ) 
+    """)
 
-def copy_files(temp_dir, activated=False):
-    online_json_content = r"""{"avatarUrl":"...","isOfficiallyVerified":%s}""" % str(activated).lower()
-    with open(f"{temp_dir}/online.json", "w") as f:
-        f.write(online_json_content)
-    shutil.copy(f"{temp_dir}/avatar.png", f"{temp_dir}/picture.png")
-    for size in sizes:
-        shutil.copy(f"{temp_dir}/avatar{size}.dds", f"{temp_dir}/picture{size}.dds")
+def user_job_dir(user_id: int, job_id: str):
+    path = os.path.join(BASE_DIR, str(user_id), job_id)
+    os.makedirs(path, exist_ok=True)
+    return path
 
-def convert_image_from_bytes(image_bytes, activated=False):
-    temp_dir = "temp"
-    if os.path.exists(temp_dir):
-        shutil.rmtree(temp_dir)
-    os.makedirs(temp_dir)
-    start_time = time.time()
+def zip_folder(folder_path: str) -> bytes:
+    buf = BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        for f in os.listdir(folder_path):
+            z.write(os.path.join(folder_path, f), f)
+    buf.seek(0)
+    return buf.read()
+
+def process_image(image_bytes: bytes, out_dir: str, activated: bool):
+    unique_id = str(uuid.uuid4())  
     with WandImage(blob=image_bytes) as img:
-        process_image(img, temp_dir)
-        copy_files(temp_dir, activated)
-    file_paths = [os.path.join(temp_dir, f) for f in os.listdir(temp_dir)]
-    archive_bytes = add_files_to_zip_in_memory(file_paths)
-    shutil.rmtree(temp_dir)
-    end_time = time.time()
-    print(f"Conversion done in {end_time - start_time:.2f}s")
-    return archive_bytes
+        img.format = "png"
+        img.resize(440, 440)
+        img.save(filename=f"{out_dir}/picture_{unique_id}.png")  
+        img.compression = "dxt5"
+        for s in SIZES:
+            img.resize(s, s)
+            img.save(filename=f"{out_dir}/picture{unique_id}_{s}.dds")  
+    with open(f"{out_dir}/online_{unique_id}.json", "w") as f:
+        f.write(f'{{"avatarUrl":"...","isOfficiallyVerified":{str(activated).lower()}}}')
+
+def save_job(user_id: int, activated: bool) -> str:
+    job_id = str(uuid.uuid4())
+    with db_connection() as conn:
+        conn.execute("""
+            INSERT INTO jobs (id, user_id, activated, created_at) 
+            VALUES (?, ?, ?, ?)
+        """, (job_id, user_id, int(activated), time.time()))
+    return job_id
 
 intents = discord.Intents.default()
-intents.message_content = True
-bot = commands.Bot(command_prefix="!", intents=intents)
+bot = commands.Bot(intents=intents)
 
-class ActivatedView(View):
-    def __init__(self, image_bytes: bytes):
-        super().__init__(timeout=300)
+class ActivateView(View):
+    def __init__(self, user_id: int, image_bytes: bytes):
+        super().__init__(timeout=180)
+        self.user_id = user_id
         self.image_bytes = image_bytes
 
-    @discord.ui.button(label="Activated (Yes)", style=discord.ButtonStyle.green)
-    async def activated_yes(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.edit_message(content="Processing image (Activated)... ⏳", view=None)
-        archive_bytes = convert_image_from_bytes(self.image_bytes, activated=True)
-        output_file = discord.File(BytesIO(archive_bytes), filename="avatar.xavatar")
-        await interaction.followup.send("XAvatar created successfully ✅ (Activated)", file=output_file)
+    async def handle(self, interaction: discord.Interaction, activated: bool):
+        await interaction.response.edit_message(content="⏳ Processing...", embed=None, view=None)
+        job_id = save_job(self.user_id, activated)
+        job_dir = user_job_dir(self.user_id, job_id)
+        process_image(self.image_bytes, job_dir, activated)
+        archive = zip_folder(job_dir)
+        await interaction.followup.send(
+            content="✅ XAvatar has been created",
+            file=discord.File(BytesIO(archive), filename="avatar.xavatar")
+        )
+        
+        shutil.rmtree(job_dir)
 
-    @discord.ui.button(label="Not Activated (No)", style=discord.ButtonStyle.grey)
-    async def activated_no(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.edit_message(content="Processing image (Not Activated)... ⏳", view=None)
-        archive_bytes = convert_image_from_bytes(self.image_bytes, activated=False)
-        output_file = discord.File(BytesIO(archive_bytes), filename="avatar.xavatar")
-        await interaction.followup.send("XAvatar created successfully ✅ (Not Activated)", file=output_file)
+    @discord.ui.button(label="Activated", style=discord.ButtonStyle.green)
+    async def yes(self, button: Button, interaction: discord.Interaction):
+        await self.handle(interaction, True)
 
-    async def on_timeout(self):
-        await self.message.edit(content="Selection timeout expired ⏰", view=None)
+    @discord.ui.button(label="Not Activated", style=discord.ButtonStyle.red)
+    async def no(self, button: Button, interaction: discord.Interaction):
+        await self.handle(interaction, False)
 
 @bot.event
 async def on_ready():
-    await bot.tree.sync()
     print(f"Logged in as {bot.user}")
 
-@bot.tree.command(name="avatar", description="Convert an image to XAvatar")
-@app_commands.describe(file="Choose an image to convert")
-async def avatar(interaction: discord.Interaction, file: discord.Attachment):
+@bot.slash_command(name="avatar", description="Convert an image to XAvatar")
+async def avatar(ctx: discord.ApplicationContext, file: Option(discord.Attachment, "Choose an image")):
+    if not file.content_type or not file.content_type.startswith("image"):
+        return await ctx.respond("❌ The file is not an image", ephemeral=True)
+    
     image_bytes = await file.read()
-    view = ActivatedView(image_bytes)
-    embed = discord.Embed(title="Convert Image to XAvatar")
-    embed.description = "Is the account verified/activated? Choose from the buttons below:"
+    embed = discord.Embed(title="Convert Image", description="Is the account activated?")
     embed.set_image(url=file.url)
-    await interaction.response.send_message(embed=embed, view=view)
+    await ctx.respond(embed=embed, view=ActivateView(ctx.author.id, image_bytes))
 
-
-bot.run("put your token bot")
+bot.run("PUT YOUR TOKEN")
